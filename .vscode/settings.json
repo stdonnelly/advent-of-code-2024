@@ -2,6 +2,8 @@
     "files.associations": {
         "stdlib.h": "c",
         "random": "c",
-        "vector_template.h": "c"
+        "vector_template.h": "c",
+        "chrono": "c",
+        "functional": "c"
     }
 }
