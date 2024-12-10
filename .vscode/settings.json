@@ -5,6 +5,13 @@
         "vector_template.h": "c",
         "chrono": "c",
         "functional": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "stat.h": "c",
+        "array": "c",
+        "bitset": "c",
+        "string_view": "c",
+        "format": "c",
+        "initializer_list": "c",
+        "span": "c"
     }
 }
