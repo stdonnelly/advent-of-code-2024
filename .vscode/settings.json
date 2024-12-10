@@ -12,6 +12,8 @@
         "string_view": "c",
         "format": "c",
         "initializer_list": "c",
-        "span": "c"
+        "endian.h": "c",
+        "stdint.h": "c",
+        "*.tcc": "c"
     }
 }
