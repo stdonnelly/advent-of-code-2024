@@ -14,6 +14,7 @@
         "initializer_list": "c",
         "endian.h": "c",
         "stdint.h": "c",
-        "*.tcc": "c"
+        "*.tcc": "c",
+        "errno.h": "c"
     }
 }
