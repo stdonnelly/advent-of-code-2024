@@ -15,6 +15,16 @@
         "endian.h": "c",
         "stdint.h": "c",
         "*.tcc": "c",
-        "errno.h": "c"
+        "errno.h": "c",
+        "string.h": "c",
+        "deque": "c",
+        "forward_list": "c",
+        "list": "c",
+        "string": "c",
+        "unordered_map": "c",
+        "unordered_set": "c",
+        "vector": "c",
+        "span": "c",
+        "text_encoding": "c"
     }
 }
