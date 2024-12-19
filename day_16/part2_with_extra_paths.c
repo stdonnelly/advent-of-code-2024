@@ -66,9 +66,12 @@ typedef struct MazeMoveHeap
 
 typedef struct MazeMoveMapElement
 {
-    // The score of this element from a parent move if there is a parent move
-    // Indexed by MoveType
-    int parent_from_move_type[3];
+    // If a parent exists from the right turn
+    bool parent_turn_right;
+    // If a parent exists from a left turn
+    bool parent_turn_left;
+    // If a parent exists from a forward move
+    bool move_forward;
 } MazeMoveMapElement;
 
 // IO
@@ -79,7 +82,7 @@ void print_map(char **map, size_t map_size, Point start, Point end);
 int get_min_score_paths(char **map, size_t map_size, Point start, Point end);
 int check_is_found(char *found_map, int map_size, int map_row_size, int row, int col, Direction direction);
 void mark_found(char *found_map, int map_size, int map_row_size, int row, int col, Direction direction);
-void mark_final_paths(char **map, size_t map_size, size_t map_row_size, MazeMoveMapElement *maze_move_map, Point start, Point end, Direction end_direction, int expected_score);
+void mark_final_paths(char **map, size_t map_size, size_t map_row_size, MazeMoveMapElement *maze_move_map, Point start, Point end, Direction end_direction);
 
 // Priority queue stuff
 void resize_pq(MazeMoveHeap *heap, int new_cap);
@@ -217,25 +220,19 @@ int get_min_score_paths(char **map, size_t map_size, Point start, Point end)
     MazeMove this_move = {.score = 0, .row = start.row, .col = start.col, .dir = START_DIR};
     while (this_move.score <= min_score)
     {
-        // If we have already found this point, but with a lower score, skip this and pop the next element in the priority queue
-        int previous_score = IDX_2D_MAZE_MOVE(maze_move_map, this_move.row, this_move.col, this_move.dir).parent_from_move_type[this_move.move_type];
-        if (previous_score && (previous_score < this_move.score))
-            goto NEXT_MOVE;
-
         // Mark on the maze move map
-        IDX_2D_MAZE_MOVE(maze_move_map, this_move.row, this_move.col, this_move.dir).parent_from_move_type[this_move.move_type] = this_move.score;
-        // switch (this_move.move_type)
-        // {
-        // case FORWARD_MV:
-        //     IDX_2D_MAZE_MOVE(maze_move_map, this_move.row, this_move.col, this_move.dir).parent_from_move_type[FORWARD_MV] = this_move.score;
-        //     break;
-        // case LEFT_TURN:
-        //     IDX_2D_MAZE_MOVE(maze_move_map, this_move.row, this_move.col, this_move.dir).parent_from_move_type[LEFT_TURN] = this_move.score;
-        //     break;
-        // case RIGHT_TURN:
-        //     IDX_2D_MAZE_MOVE(maze_move_map, this_move.row, this_move.col, this_move.dir).parent_from_move_type[RIGHT_TURN] = this_move.score;
-        //     break;
-        // }
+        switch (this_move.move_type)
+        {
+        case FORWARD_MV:
+            IDX_2D_MAZE_MOVE(maze_move_map, this_move.row, this_move.col, this_move.dir).move_forward = true;
+            break;
+        case LEFT_TURN:
+            IDX_2D_MAZE_MOVE(maze_move_map, this_move.row, this_move.col, this_move.dir).parent_turn_left = true;
+            break;
+        case RIGHT_TURN:
+            IDX_2D_MAZE_MOVE(maze_move_map, this_move.row, this_move.col, this_move.dir).parent_turn_right = true;
+            break;
+        }
         // Mark found because this is the next point
         mark_found(found_map, map_size, map_row_size, this_move.row, this_move.col, this_move.dir);
 
@@ -279,7 +276,6 @@ int get_min_score_paths(char **map, size_t map_size, Point start, Point end)
         if (!check_is_found(found_map, map_size, map_row_size, this_move.row, this_move.col, next_dir))
             push_pq(&heap, (MazeMove){.score = this_move.score + TURN_COST, .row = this_move.row, .col = this_move.col, .dir = next_dir, .move_type = RIGHT_TURN});
 
-    NEXT_MOVE:
         // Finally get the cheapest next move
         this_move = peek_pq(heap);
         pop_pq(&heap);
@@ -290,7 +286,7 @@ int get_min_score_paths(char **map, size_t map_size, Point start, Point end)
 
     // Mark end paths in all directions
     for (int i = 0; i < 4; i++)
-        mark_final_paths(map, map_size, map_row_size, maze_move_map, start, end, i, min_score);
+        mark_final_paths(map, map_size, map_row_size, maze_move_map, start, end, i);
 
     int tile_count = 0;
     for (size_t i = 0; i < map_size; i++)
@@ -433,16 +429,7 @@ MazeMove peek_pq(MazeMoveHeap heap)
     return heap.arr[0];
 }
 
-/// @brief Mark the map with 'O' for the best path(s), starting with the target point
-/// @param map The map
-/// @param map_size The number of rows in `map`
-/// @param map_row_size The number of columns in `map`
-/// @param maze_move_map The maze move map for finding parent nodes of the current node
-/// @param start The beginning node of the maze (the end for this function)
-/// @param end The end of the maze (the last element in the maze to go from)
-/// @param end_direction The direction of the last element
-/// @param expected_score The score that should be expected for the element, if any thing in `this_element.parent_from_move_type` does not match that score, it will be ignored
-void mark_final_paths(char **map, size_t map_size, size_t map_row_size, MazeMoveMapElement *maze_move_map, Point start, Point end, Direction end_direction, int expected_score)
+void mark_final_paths(char **map, size_t map_size, size_t map_row_size, MazeMoveMapElement *maze_move_map, Point start, Point end, Direction end_direction)
 {
     map[end.row][end.col] = 'O';
     // Stop at start
@@ -450,7 +437,7 @@ void mark_final_paths(char **map, size_t map_size, size_t map_row_size, MazeMove
         return;
     MazeMoveMapElement this_element = IDX_2D_MAZE_MOVE(maze_move_map, end.row, end.col, end_direction);
 
-    if (this_element.parent_from_move_type[FORWARD_MV] == expected_score)
+    if (this_element.move_forward)
     {
         // Mark go backwards
         Point parent = end;
@@ -473,14 +460,14 @@ void mark_final_paths(char **map, size_t map_size, size_t map_row_size, MazeMove
             fprintf(stderr, "Unknown direction %d\n", end_direction);
             exit(1);
         }
-        mark_final_paths(map, map_size, map_row_size, maze_move_map, start, parent, end_direction, expected_score - MOVE_COST);
+        mark_final_paths(map, map_size, map_row_size, maze_move_map, start, parent, end_direction);
     }
 
-    if (this_element.parent_from_move_type[LEFT_TURN] == expected_score)
+    if (this_element.parent_turn_left)
         // Mark turn right
-        mark_final_paths(map, map_size, map_row_size, maze_move_map, start, end, (end_direction - 1) & 0b11, expected_score - TURN_COST);
+        mark_final_paths(map, map_size, map_row_size, maze_move_map, start, end, (end_direction - 1) & 0b11);
 
-    if (this_element.parent_from_move_type[RIGHT_TURN] == expected_score)
+    if (this_element.parent_turn_right)
         // Mark turn left
-        mark_final_paths(map, map_size, map_row_size, maze_move_map, start, end, (end_direction + 1) & 0b11, expected_score - TURN_COST);
+        mark_final_paths(map, map_size, map_row_size, maze_move_map, start, end, (end_direction + 1) & 0b11);
 }
