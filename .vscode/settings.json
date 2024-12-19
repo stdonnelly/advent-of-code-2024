@@ -25,6 +25,9 @@
         "unordered_set": "c",
         "vector": "c",
         "span": "c",
-        "text_encoding": "c"
+        "text_encoding": "c",
+        "map": "c",
+        "zlib.h": "c",
+        "*.h": "c"
     }
 }
