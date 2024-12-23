@@ -2,11 +2,14 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <stdckdint.h>
 
 #include "../vector_template.h"
+#include "../hash_map.h"
 
 #define CODE_LENGTH 4
 #define CODE_COUNT 5
+#define INDIRECTION 25
 
 // Constant to tell what row (top to bottom) a digit is on the keypad
 const short ROW_OF[] = {
@@ -31,6 +34,8 @@ long long get_shortest_sequence(char *code, int is_numpad, int depth);
 short get_row_of(char key, int is_numpad);
 short get_col_of(char key, int is_numpad);
 
+HashMap *caches;
+
 int main(int argc, char *argv[])
 {
     char *input_file = (argc >= 2) ? argv[1] : NULL;
@@ -40,10 +45,18 @@ int main(int argc, char *argv[])
     if (parse_input(input_file, &codes, &codes_size))
         return 1;
 
+    // Allocate caches
+    caches = malloc(sizeof(caches[0]) * (INDIRECTION + 1));
+    for (int i = 0; i <= INDIRECTION; i++)
+        caches[i] = new_HashMap();
+
     long long total_complexity = get_total_complexity(codes, codes_size);
 
     printf("\nTotal complexity: %lld\n", total_complexity);
 
+    for (int i = 0; i <= INDIRECTION; i++)
+        delete_HashMap(&(caches[i]));
+    free(caches);
     for (int i = 0; i < codes_size; i++)
         free(codes[i]);
     free(codes);
@@ -99,7 +112,7 @@ long long get_total_complexity(char **codes, int codes_size)
         printf("%.4s: ", codes[i]);
 
         int numeric_part = get_code_numeric_part(codes[i]);
-        long long shortest_sequence = get_shortest_sequence(codes[i], 1, 2);
+        long long shortest_sequence = get_shortest_sequence(codes[i], 1, INDIRECTION);
 
         printf("%lld\n", shortest_sequence);
         complexity_sum += shortest_sequence * numeric_part;
@@ -220,7 +233,13 @@ short get_col_of(char key, int is_numpad)
 /// @return The length of the shortest sequence of inputs that will produce `code`
 long long get_shortest_sequence(char *code, int is_numpad, int depth)
 {
-    long long sequence_cost = 0;
+    // Check cache
+    long long sequence_cost = get_map(&(caches[depth]), code);
+    if (sequence_cost != -1)
+        return sequence_cost;
+    else
+        // Set to zero so we can use it in the rest of the program
+        sequence_cost = 0;
     // Loop over desired keys
     char last_key = 'A';
     for (int i = 0; code[i]; i++)
@@ -273,8 +292,8 @@ long long get_shortest_sequence(char *code, int is_numpad, int depth)
 
             // Find the best way to organize it
 
-            int up_down_first_cost;
-            int right_left_first_cost;
+            long long up_down_first_cost;
+            long long right_left_first_cost;
 
             // Ensure up_down first won't cause panic
             if (
@@ -283,7 +302,7 @@ long long get_shortest_sequence(char *code, int is_numpad, int depth)
                 // dpad dead zone
                 (!is_numpad && (last_key == '<') && (get_row_of(this_key, 0) == 0)))
             {
-                up_down_first_cost = INT_MAX;
+                up_down_first_cost = LLONG_MAX;
             }
             else
             {
@@ -299,7 +318,7 @@ long long get_shortest_sequence(char *code, int is_numpad, int depth)
                 (!is_numpad && (get_row_of(last_key, 0) == 0) && (this_key == '<')))
             {
                 // Will cause panic, so we set the cost to INT_MAX to prevent this from being used
-                right_left_first_cost = INT_MAX;
+                right_left_first_cost = LLONG_MAX;
             }
             else
             {
@@ -318,5 +337,7 @@ long long get_shortest_sequence(char *code, int is_numpad, int depth)
         last_key = this_key;
     }
 
+    // Cache
+    put_map(&(caches[depth]), code, sequence_cost);
     return sequence_cost;
 }
