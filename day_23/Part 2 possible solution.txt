@@ -1,0 +1,16 @@
+Notes:
+- All computers that exist have a degree 4 in the sample input and degree 13 in the real input.
+- In the real input most identifiers in the "aa"-"zz" space are used. This is about 500-600 (there are 676 legal identifiers, but some are unused).
+- Due to the fairly low amount of data, inefficient solutions probably will work.
+
+Solution that requires a sequence of 14:
+Pseudocode:
+For each computer that has any neighbors:
+    Put the neighbors and self into an ordered array (always at most 14 elements)
+    For each element e in that array:
+        If e is not neighbors with every element in the array,
+            go to the next computer in the outer loop.
+
+Solution that will work if the sequence is less than 14:
+Do the same thing as above, but search for progressively smaller sequences.
+This can be done by manually removing an element from the neighbor array before checking it
