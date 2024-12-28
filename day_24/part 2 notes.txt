@@ -1,0 +1,15 @@
+Brute force:
+The final function with -O2 takes 0.000111
+Brute forcing by choosing all combinations of possible numbers to swap requires (222C8) iterations.
+That last point doesn't even include the fact that:
+    1. Iterations would take longer that just the function time.
+    2. Each iteration would need to take each pair of numbers, not just sets of 8 numbers.
+At minimum: Brute force would take (222C8) * 0.000111 seconds = ~453 years (https://www.wolframalpha.com/input?i=%28222choose8%29*0.000111seconds)
+An actual brute force would take way longer.
+
+Greedy:
+May work.
+May need to find multiple test numbers to add.
+Trying all numbers 2^44..2^43 would still take about 31 years
+To fix the test number issue: Just use the default numbers and generate a list of candidates.
+If there is more than one candidate, try more numbers
