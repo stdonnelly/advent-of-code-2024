@@ -3,6 +3,7 @@
 #include <string.h>
 
 #include "../vector_template.h"
+#include "../hash_map.h"
 
 typedef enum OperationType
 {
@@ -27,6 +28,13 @@ typedef struct OperationListNode
 
 DEF_VEC(Operation)
 
+typedef struct OperationTreeNode
+{
+    struct OperationTreeNode *lhs, *rhs;
+    OperationType type;
+    char result[4];
+} OperationTreeNode;
+
 // Part 1
 int parse_input(char *input_file, long long *x, long long *y, OperationVec *operations);
 long long perform_all_operations(long long x, long long y, Operation *operations, size_t operations_size);
@@ -35,8 +43,7 @@ OperationListNode *to_linked_list(Operation *arr, size_t size, OperationListNode
 // Part 2
 void print_z_equations(Operation *operations, size_t operations_size);
 int print_equation(Operation *operations, size_t operations_size, char *result);
-Operation *find_operation(Operation *operations, size_t operations_size, char *target_result);
-int are_operations_equivalent(Operation *operations, size_t operations_size, char *a, char *b);
+HashMap get_operation_tree(Operation *operations, size_t operations_size);
 
 int main(int argc, char *argv[])
 {
@@ -52,6 +59,9 @@ int main(int argc, char *argv[])
     printf("z: %lld\n", z);
 
     print_z_equations(operations.arr, operations.len);
+    
+    HashMap map = get_operation_tree(operations.arr, operations.len);
+    delete_HashMap_and_values(&map);
 
     free(operations.arr);
     return 0;
@@ -266,7 +276,11 @@ void print_z_equations(Operation *operations, size_t operations_size)
     for (int i = 0;; i++)
     {
         // Get the identifier
+        // Ignore possible truncation of '%02d' because i should always be at most two digits
+        #pragma GCC diagnostic push
+        #pragma GCC diagnostic ignored "-Wformat-truncation"
         snprintf(z_identifier, sizeof(z_identifier), "z%02d", i);
+        #pragma GCC diagnostic pop
         printf("%s: ", z_identifier);
 
         if (!print_equation(operations, operations_size, z_identifier))
@@ -338,31 +352,83 @@ int print_equation(Operation *operations, size_t operations_size, char *result)
     return 0;
 }
 
-// /// @brief Find the operation that produces result `target_result`
-// /// @param operations The list of operations to search in
-// /// @param operations_size The size of `operations`
-// /// @param target_result The result to search for
-// /// @return A pointer to the operation if found, NULL otherwise
-// Operation *find_operation(Operation *operations, size_t operations_size, char *target_result)
-// {
-//     for (size_t i = 0; i < operations_size; i++)
-//     {
-//         if (!memcmp(operations[i].result, target_result, sizeof(operations[i].result)))
-//             return operations + i;
-//     }
-//     return NULL;
-// }
+/// @brief Convert an array of operations into a hashmap of connected OperationTreeNodes
+/// @param operations The array of operations to do
+/// @param operations_size The number of elements in `operations`
+/// @return A HashMap containing each operation tree
+HashMap get_operation_tree(Operation *operations, size_t operations_size)
+{
+    HashMap map = new_HashMap();
 
-// /// @brief Determine if the operations needed to find the given variables are equivalent.
-// ///
-// /// This can include swapping the operands, since all operations are commutative.
-// /// @param operations The list of operations to find intermediate operations in
-// /// @param operations_size The size of `operations`
-// /// @param a One variable
-// /// @param b The other variable
-// /// @return 1 if the operations are equivalent, 0 if not
-// int are_operations_equivalent(Operation *operations, size_t operations_size, char *a, char *b)
-// {
-//     // If they are just the same variable
-//     if (!memcmp())
-// }
+    // Linked list
+    OperationListNode *tail;
+    OperationListNode *head = to_linked_list(operations, operations_size, &tail);
+
+    // Loop over the linked list
+    while (head)
+    {
+        OperationListNode *next = head->next;
+        // char lhs, rhs, result;
+        Operation op = head->op;
+
+        OperationTreeNode *lhs = get_map_as_ptr(&map, op.lhs);
+        if (!lhs)
+        {
+            // x.. or y.. not being found is expected, other variables should be found at some point
+            if (op.lhs[0] == 'x' || op.lhs[0] == 'y')
+            {
+                // Make a new one
+                lhs = calloc(1, sizeof(*lhs));
+                memcpy(lhs->result, op.lhs, sizeof(op.lhs));
+
+                put_map_as_ptr(&map, op.lhs, lhs);
+            }
+            else
+            {
+                // If this is an intermediate variable, wait until after it's put into the map
+                head->next = NULL;
+                tail = tail->next = head;
+                head = next;
+                continue;
+            }
+        }
+
+        // Do the same thing for rhs
+        OperationTreeNode *rhs = get_map_as_ptr(&map, op.rhs);
+        if (!rhs)
+        {
+            // x.. or y.. not being found is expected, other variables should be found at some point
+            if (op.rhs[0] == 'x' || op.rhs[0] == 'y')
+            {
+                // Make a new one
+                rhs = calloc(1, sizeof(*rhs));
+                memcpy(rhs->result, op.rhs, sizeof(op.rhs));
+
+                put_map_as_ptr(&map, op.rhs, rhs);
+            }
+            else
+            {
+                // If this is an intermediate variable, wait until after it's put into the map
+                head->next = NULL;
+                tail = tail->next = head;
+                head = next;
+                continue;
+            }
+        }
+
+        // If neither of the above statements caused this loop to continue, create a new operation tree node
+        OperationTreeNode *this_op = malloc(sizeof(*this_op));
+        this_op->lhs = lhs;
+        this_op->rhs = rhs;
+        memcpy(this_op->result, op.result, sizeof(op.result));
+        this_op->type = op.type;
+
+        // Store result
+        put_map_as_ptr(&map, op.result, this_op);
+
+        free(head);
+        head = next;
+    }
+
+    return map;
+}
