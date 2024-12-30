@@ -13,3 +13,10 @@ May need to find multiple test numbers to add.
 Trying all numbers 2^44..2^43 would still take about 31 years
 To fix the test number issue: Just use the default numbers and generate a list of candidates.
 If there is more than one candidate, try more numbers
+
+The solution I actually did:
+1. Define a correct ripple carry adder
+2. Put both the input and the correct ripple adder into HashMaps of operation trees
+3. Find the deepest point where one of a nodes children is correct, but not both, the incorrect child should be swapped
+    - If both children are wrong, print the root (the z.. variable), because that is the incorrect one.
+4. Run the output through `sort` and `uniq` because duplicates will be printed

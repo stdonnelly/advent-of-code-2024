@@ -5,6 +5,8 @@
 #include "../vector_template.h"
 #include "../hash_map.h"
 
+#define ADDER_REF_NAME "45-bit_adder.txt"
+
 typedef enum OperationType
 {
     AND,
@@ -44,6 +46,9 @@ OperationListNode *to_linked_list(Operation *arr, size_t size, OperationListNode
 void print_z_equations(Operation *operations, size_t operations_size);
 int print_equation(Operation *operations, size_t operations_size, char *result);
 HashMap get_operation_tree(Operation *operations, size_t operations_size);
+void print_operation_tree(OperationTreeNode *root);
+void print_all_incorrect_operations(Operation *operations, size_t operations_size);
+int are_operation_trees_equal(OperationTreeNode *expected, OperationTreeNode *actual);
 
 int main(int argc, char *argv[])
 {
@@ -58,8 +63,8 @@ int main(int argc, char *argv[])
 
     printf("z: %lld\n", z);
 
-    print_z_equations(operations.arr, operations.len);
-    
+    print_all_incorrect_operations(operations.arr, operations.len);
+
     HashMap map = get_operation_tree(operations.arr, operations.len);
     delete_HashMap_and_values(&map);
 
@@ -271,23 +276,33 @@ long long perform_all_operations(long long x, long long y, Operation *operations
 /// @param operations_size The number of elements in `operations`
 void print_z_equations(Operation *operations, size_t operations_size)
 {
+    HashMap operations_map = get_operation_tree(operations, operations_size);
     char z_identifier[4];
     // Infinite loop, will break when we can't find an additional z
+    // printf("{\n");
     for (int i = 0;; i++)
     {
-        // Get the identifier
-        // Ignore possible truncation of '%02d' because i should always be at most two digits
-        #pragma GCC diagnostic push
-        #pragma GCC diagnostic ignored "-Wformat-truncation"
+// Get the identifier
+// Ignore possible truncation of '%02d' because i should always be at most two digits
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
         snprintf(z_identifier, sizeof(z_identifier), "z%02d", i);
-        #pragma GCC diagnostic pop
-        printf("%s: ", z_identifier);
+#pragma GCC diagnostic pop
 
-        if (!print_equation(operations, operations_size, z_identifier))
+        OperationTreeNode *operation_node = get_map_as_ptr(&operations_map, z_identifier);
+        if (operation_node)
+        {
+            printf("\"%s\": ", z_identifier);
+            print_operation_tree(operation_node);
+            // printf(",\n");
+            printf("\n");
+        }
+        else
             break;
-        printf("\n");
     }
-    printf("\n");
+    // printf("}\n");
+
+    delete_HashMap_and_values(&operations_map);
 }
 
 /// @brief Recursively print an equation resulting in `result` to stdout
@@ -431,4 +446,146 @@ HashMap get_operation_tree(Operation *operations, size_t operations_size)
     }
 
     return map;
+}
+
+/// @brief Recursively print the tree of operations to stdout
+/// @param root The root of the operations tree
+void print_operation_tree(OperationTreeNode *root)
+{
+    if (root->result[0] == 'x' || root->result[0] == 'y')
+    {
+        // If the result is one of the starting variables, just print it
+        // printf("\"%s\"", root->result);
+        printf("%s", root->result);
+    }
+    else
+    {
+        char *type;
+        switch (root->type)
+        {
+        case AND:
+            type = "AND";
+            break;
+        case OR:
+            type = "OR";
+            break;
+        case XOR:
+            type = "XOR";
+            break;
+        }
+        // If the root is an intermediate variable, recursively print it
+        // printf("{\"name\":\"%s\",\"lhs\":", root->result);
+        printf("(");
+        print_operation_tree(root->lhs);
+        // printf(",\"type\":\"%s\",\"rhs\":", type);
+        printf(" %s ", type);
+        print_operation_tree(root->rhs);
+        printf(")");
+        // printf("}");
+    }
+}
+
+/// @brief Determine if operation trees are equivalent
+/// @param expected The expected operation tree
+/// @param actual The actual operation tree
+/// @return 1 if equivalent, 0 if not
+int are_operation_trees_equal(OperationTreeNode *expected, OperationTreeNode *actual)
+{
+    // Base cases:
+    // If any nodes are NULL, we can't check for equality
+    if (!expected || !actual)
+    {
+        return 0;
+    }
+    // If any nodes are equal, they must be equivalent
+    if (expected->result[0] != 'z' && !memcmp(expected->result, actual->result, sizeof(actual->result)))
+    {
+        // printf("\t%s,%s\n", expected->result, actual->result);
+        return 1;
+    }
+
+    // Incorrect type
+    if (expected->type != actual->type)
+    {
+        return 0;
+    }
+
+    // If not are x.. or y.., compare
+    // Store recursive calls for efficiency
+    int lhs_lhs_equal = are_operation_trees_equal(expected->lhs, actual->lhs);
+    int rhs_rhs_equal = are_operation_trees_equal(expected->rhs, actual->rhs);
+    if (lhs_lhs_equal && rhs_rhs_equal)
+        return 1;
+
+    int lhs_rhs_equal = are_operation_trees_equal(expected->lhs, actual->rhs);
+    int rhs_lhs_equal = are_operation_trees_equal(expected->rhs, actual->lhs);
+    if (lhs_rhs_equal && rhs_lhs_equal)
+        return 1;
+
+    // If one of the above was equal, but not both in a pair, print the incorrect actual name
+    if (lhs_lhs_equal || rhs_lhs_equal)
+    {
+        // If actual lhs was correct print rhs because it's wrong
+        if (actual->rhs)
+            printf("%s\n", actual->rhs->result);
+        // Return 1 because this is the deepest error and we don't want to print parents
+        return 1;
+    }
+    else if (rhs_rhs_equal || lhs_rhs_equal)
+    {
+        // If actual rhs was correct
+        if (actual->lhs)
+            printf("%s\n", actual->lhs->result);
+        // Return 1 because this is the deepest error and we don't want to print parents
+        return 1;
+    }
+
+    return 0;
+}
+
+/// @brief Print all erroneous operations ot stdout, as compared to the list in `ADDER_REF_NAME`
+/// @param operations The array of operations to do
+/// @param operations_size The number of elements in `operations`
+void print_all_incorrect_operations(Operation *operations, size_t operations_size)
+{
+    // Parse the expected adder
+    long long x, y;
+    OperationVec expected_operations_vec;
+    if (parse_input(ADDER_REF_NAME, &x, &y, &expected_operations_vec))
+    {
+        fprintf(stderr, "Error opening '%s'\n", ADDER_REF_NAME);
+        return;
+    }
+
+    // Convert those into maps
+    HashMap actual_operations = get_operation_tree(operations, operations_size);
+    HashMap expected_operations = get_operation_tree(expected_operations_vec.arr, expected_operations_vec.len);
+
+    // Iterate over nodes
+    char z_identifier[4];
+    OperationTreeNode *actual_node, *expected_node;
+    for (int i = 0;; i++)
+    {
+        // Get the identifier
+        // Ignore possible truncation of '%02d' because i should always be at most two digits
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wformat-truncation"
+        snprintf(z_identifier, sizeof(z_identifier), "z%02d", i);
+#pragma GCC diagnostic pop
+        actual_node = get_map_as_ptr(&actual_operations, z_identifier);
+        expected_node = get_map_as_ptr(&expected_operations, z_identifier);
+
+        // Stop when we can't find any more bits
+        if (!actual_node || !expected_node)
+            break;
+
+        // Determine if the bits are equivalent
+        if (!are_operation_trees_equal(expected_node, actual_node))
+            // If 1 is returned, this means that both children of this node is wrong, so the node itself is wrong
+            printf("%s\n", z_identifier);
+    }
+
+    delete_HashMap_and_values(&actual_operations);
+    delete_HashMap_and_values(&expected_operations);
+    free(expected_operations_vec.arr);
 }
