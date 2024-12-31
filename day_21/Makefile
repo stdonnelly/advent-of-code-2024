@@ -1,19 +1,15 @@
+.PHONY: clean
+
 CXX = gcc
 DEBUG_FLAGS = -Wall -fsanitize=address -g3
-OPTIMIZE_FLAGS = -O2
 
-part1-sample :
-	$(CXX) $(DEBUG_FLAGS) -o part1 part1.c
-	./part1 sample_input.txt
+all: part1 part2
 
-part1-final :
-	$(CXX) $(DEBUG_FLAGS) -o part1 part1.c
-	./part1 input.txt
+part1: part1.c
+	$(CXX) $(DEBUG_FLAGS) $< -o $@
 
-part2-sample :
-	$(CXX) $(DEBUG_FLAGS) -lz -o part2 part2.c
-	./part2 sample_input.txt
+part2: part2.c
+	$(CXX) $(DEBUG_FLAGS) -lz $< -o $@
 
-part2-final :
-	$(CXX) $(DEBUG_FLAGS) -lz -o part2 part2.c
-	./part2 input.txt
+clean:
+	rm -f part1 part2 *.o *.a
