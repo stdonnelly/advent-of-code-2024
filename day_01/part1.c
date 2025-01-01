@@ -2,7 +2,7 @@
 #include <stdlib.h>
 
 #include "../vector_template.h"
-#include "../merge_sort.h"
+#include "../c-data-structures/merge_sort/merge_sort.h"
 
 DEF_VEC(int)
 
