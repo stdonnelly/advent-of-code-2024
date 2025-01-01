@@ -2,12 +2,12 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../vector_template.h"
+#include "../c-data-structures/vector/vector_template.h"
 
 typedef char *string;
 DEF_VEC(char)
 DEF_VEC(string)
-void delete_string_vec(stringVec *vec)
+void delete_string_vec(string_Vec *vec)
 {
     for (int i = 0; i < vec->len; i++)
         free(vec->arr[i]);
@@ -32,7 +32,7 @@ typedef struct Move
 
 DEF_VEC(Move)
 
-int parse_input(char *input_file, stringVec *map, charVec *moves, Point *robot);
+int parse_input(char *input_file, string_Vec *map, char_Vec *moves, Point *robot);
 void print_map(char **map, size_t map_size, Point robot);
 long long get_gps_sum(char **map, size_t map_size, char *moves, Point *robot);
 int get_gps(int row, int col);
@@ -41,8 +41,8 @@ void do_moves(char **map, int row, int col, char direction);
 
 int main(int argc, char *argv[])
 {
-    stringVec map;
-    charVec moves;
+    string_Vec map;
+    char_Vec moves;
     Point robot;
     char *input_file = (argc >= 2) ? argv[1] : NULL;
     if (parse_input(input_file, &map, &moves, &robot))
@@ -80,7 +80,7 @@ void print_map(char **map, size_t map_size, Point robot)
 /// @param moves Out: All of the moves that will be taken by the robot
 /// @param robot Out: The location of the robot
 /// @return 0 if successful, 1 if unsuccessful
-int parse_input(char *input_file, stringVec *map, charVec *moves, Point *robot)
+int parse_input(char *input_file, string_Vec *map, char_Vec *moves, Point *robot)
 {
     // Open input.txt or panic
     FILE *f = input_file ? fopen(input_file, "r") : stdin;
@@ -89,13 +89,13 @@ int parse_input(char *input_file, stringVec *map, charVec *moves, Point *robot)
         perror("Error opening input file");
         return 1;
     }
-    *map = newstringVec();
-    *moves = newcharVec();
+    *map = new_string_Vec();
+    *moves = new_char_Vec();
 
     // Used to detect double newline, which indicates the start of the next section
     int last_char = 0;
     int ch;
-    charVec row = newcharVec();
+    char_Vec row = new_char_Vec();
     while ((ch = getc(f)) != EOF)
     {
         if (ch != '\n')
@@ -105,25 +105,25 @@ int parse_input(char *input_file, stringVec *map, charVec *moves, Point *robot)
             {
                 robot->row = map->len;
                 robot->col = row.len;
-                appendchar(&row, '.');
-                appendchar(&row, '.');
+                append_char_Vec(&row, '.');
+                append_char_Vec(&row, '.');
             }
             else if (ch == 'O')
             {
-                appendchar(&row, '[');
-                appendchar(&row, ']');
+                append_char_Vec(&row, '[');
+                append_char_Vec(&row, ']');
             }
             else
             {
-                appendchar(&row, ch);
-                appendchar(&row, ch);
+                append_char_Vec(&row, ch);
+                append_char_Vec(&row, ch);
             }
         }
         // Put the new line only if the double newline has not been reached
         else if (last_char != '\n')
         {
-            appendchar(&row, '\0');
-            appendstring(map, row.arr);
+            append_char_Vec(&row, '\0');
+            append_string_Vec(map, row.arr);
             // Generate a new char vector for the next iteration
             // Slight optimization: start with a capacity of this array's length
             row.arr = malloc(sizeof(row.arr[0]) * row.len);
@@ -140,8 +140,8 @@ int parse_input(char *input_file, stringVec *map, charVec *moves, Point *robot)
     // Put the rest of the file in the moves vector
     while ((ch = getc(f)) != EOF)
         if (ch != '\n')
-            appendchar(moves, ch);
-    appendchar(moves, '\0');
+            append_char_Vec(moves, ch);
+    append_char_Vec(moves, '\0');
 
     return 0;
 }

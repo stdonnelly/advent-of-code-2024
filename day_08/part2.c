@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../vector_template.h"
+#include "../c-data-structures/vector/vector_template.h"
 
 // Define point using shorts instead of int or size_t because the real input is only 50x50
 // This allows us to make other structures that are smaller than 64-bit for efficiency
@@ -17,14 +17,14 @@ DEF_VEC(Point)
 // A map from a frequency identifier, signified by a number, uppercase letter, or lowercase letter
 typedef struct FrequencyMap
 {
-    PointVec table[10 + 26 + 26];
+    Point_Vec table[10 + 26 + 26];
 } FrequencyMap;
 
 // Define char and char* vectors
 typedef char *string;
 DEF_VEC(char)
 DEF_VEC(string)
-void delete_string_vec(stringVec *vec)
+void delete_string_vec(string_Vec *vec)
 {
     for (int i = 0; i < vec->len; i++)
         free(vec->arr[i]);
@@ -34,7 +34,7 @@ void delete_string_vec(stringVec *vec)
     vec->cap = 0UL;
 }
 
-int parse_input(stringVec *map, FrequencyMap *antenna_map);
+int parse_input(string_Vec *map, FrequencyMap *antenna_map);
 void print_map(char **map, size_t row_count);
 FrequencyMap newFrequencyMap();
 void deleteFrequencyMap(FrequencyMap *map);
@@ -48,7 +48,7 @@ short gcd(short x, short y);
 int main(int argc, char const *argv[])
 {
     // The map of spaces (as '.'), antennas (as alphanumeric), and antinodes (as '#')
-    stringVec map;
+    string_Vec map;
     // The map from frequency to antenna locations
     FrequencyMap antenna_map;
 
@@ -72,7 +72,7 @@ int main(int argc, char const *argv[])
 /// @param map Out parameter: The map for the puzzle
 /// @param antenna_map Out parameter: map of frequencies to antenna locations
 /// @return 0 if successful. Some nonzero number if unsuccessful (i.e. IO error)
-int parse_input(stringVec *map, FrequencyMap *antenna_map)
+int parse_input(string_Vec *map, FrequencyMap *antenna_map)
 {
     // Open input.txt or panic
     FILE *f = fopen("input.txt", "r");
@@ -82,17 +82,17 @@ int parse_input(stringVec *map, FrequencyMap *antenna_map)
         return 1;
     }
 
-    *map = newstringVec();
+    *map = new_string_Vec();
     *antenna_map = newFrequencyMap();
 
     // Loop over characters in the file
     int ch;
-    charVec row = newcharVec();
+    char_Vec row = new_char_Vec();
     while ((ch = getc(f)) != EOF)
     {
         if (ch == '.')
         {
-            appendchar(&row, (char)ch);
+            append_char_Vec(&row, (char)ch);
         }
         else if (
             ('0' <= ch && ch <= '9') ||
@@ -106,15 +106,15 @@ int parse_input(stringVec *map, FrequencyMap *antenna_map)
                 fprintf(stderr, "Unexpected invalid antenna '%c'\n", (char)ch);
                 exit(1);
             }
-            appendchar(&row, (char)ch);
+            append_char_Vec(&row, (char)ch);
         }
         else if (ch == '\n')
         {
             // Add terminator for the string and put it on the string vector
-            appendchar(&row, '\0');
-            appendstring(map, row.arr);
+            append_char_Vec(&row, '\0');
+            append_string_Vec(map, row.arr);
             // Generate a new char vector for the next iteration
-            row = newcharVec();
+            row = new_char_Vec();
         }
         else
         {
@@ -124,11 +124,11 @@ int parse_input(stringVec *map, FrequencyMap *antenna_map)
             return 1;
         }
     }
-    // If relevant, append the last row. Otherwise, just free the row
+    // If relevant, append__Vec the last row. Otherwise, just free the row
     if (row.len > 0)
     {
-        appendchar(&row, '\0');
-        appendstring(map, row.arr);
+        append_char_Vec(&row, '\0');
+        append_string_Vec(map, row.arr);
     }
     else
         free(row.arr);
@@ -151,7 +151,7 @@ FrequencyMap newFrequencyMap()
     FrequencyMap m;
     for (int i = 0; i < sizeof(m.table) / sizeof(m.table[0]); i++)
     {
-        m.table[i] = newPointVec();
+        m.table[i] = new_Point_Vec();
     }
     return m;
 }
@@ -194,7 +194,7 @@ int add_antenna(FrequencyMap *map, char frequency, Point antenna)
     if (index == -1)
         return 1;
 
-    appendPoint(&(map->table[index]), antenna);
+    append_Point_Vec(&(map->table[index]), antenna);
     return 0;
 }
 
@@ -255,7 +255,7 @@ int count_antinodes(char **map, size_t map_size, FrequencyMap antenna_map)
 Point *find_possible_antinodes(Point *antennas, size_t antennas_size, char **map, size_t map_size, size_t *possible_antinodes_size)
 {
     // Use a vector instead of an array because we can't calculate how many antinodes there will with only the number of antennas (for part 2)
-    PointVec antinodes = newPointVec();
+    Point_Vec antinodes = new_Point_Vec();
     // Loop over "first" antenna (order is irrelevant)
     for (size_t i = 0; i < antennas_size - 1; i++)
     {
@@ -286,7 +286,7 @@ Point *find_possible_antinodes(Point *antennas, size_t antennas_size, char **map
             while (row >= 0 && col >= 0 &&
                    row < map_size && col < strlen(map[row]))
             {
-                appendPoint(&antinodes, (Point){row, col});
+                append_Point_Vec(&antinodes, (Point){row, col});
                 row -= row_diff;
                 col -= col_diff;
             }
@@ -296,7 +296,7 @@ Point *find_possible_antinodes(Point *antennas, size_t antennas_size, char **map
             while (row >= 0 && col >= 0 &&
                    row < map_size && col < strlen(map[row]))
             {
-                appendPoint(&antinodes, (Point){row, col});
+                append_Point_Vec(&antinodes, (Point){row, col});
                 row += row_diff;
                 col += col_diff;
             }

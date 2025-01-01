@@ -2,13 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../vector_template.h"
+#include "../c-data-structures/vector/vector_template.h"
 
 // Define char and char* vectors
 typedef char *string;
 DEF_VEC(char)
 DEF_VEC(string)
-void delete_string_vec(stringVec *vec)
+void delete_string_vec(string_Vec *vec)
 {
     for (int i = 0; i < vec->len; i++)
         free(vec->arr[i]);
@@ -41,11 +41,11 @@ typedef struct Position
 } Position;
 DEF_VEC(Position);
 
-int parse_input(stringVec *map, Guard *guard);
+int parse_input(string_Vec *map, Guard *guard);
 int move_guard(Guard *guard, char **map, size_t row_count);
 // Rotate direction right and return the rotated direction
 Direction rotate_right(Direction dir) { return (dir + 1) % (LEFT + 1); }
-PositionVec unique_visited_tiles(char **map, size_t row_count, Guard guard);
+Position_Vec unique_visited_tiles(char **map, size_t row_count, Guard guard);
 void print_map(char **map, size_t row_count);
 char peek_guard(Guard guard, char **map, size_t row_count);
 int obstructions_that_create_loops(char **map, size_t map_row_count, Position *positions_to_try, size_t positions_to_try_size, Guard guard);
@@ -54,7 +54,7 @@ int move_guard_with_direction(Guard *guard, char **map, size_t row_count);
 
 int main(int argc, char const *argv[])
 {
-    stringVec map;
+    string_Vec map;
     Guard guard;
 
     // Parse input
@@ -62,7 +62,7 @@ int main(int argc, char const *argv[])
         return 1;
 
     // Count tiles and update the map
-    PositionVec unique_tiles = unique_visited_tiles(map.arr, map.len, guard);
+    Position_Vec unique_tiles = unique_visited_tiles(map.arr, map.len, guard);
 
     // Print the map after the update
     printf("Map after updates:\n");
@@ -94,7 +94,7 @@ int main(int argc, char const *argv[])
 /// @param map Out parameter: The map for the puzzle
 /// @param guard Out parameter: location and direction of the guard on the map
 /// @return 0 if successful. Some nonzero number if unsuccessful (i.e. IO error)
-int parse_input(stringVec *map, Guard *guard)
+int parse_input(string_Vec *map, Guard *guard)
 {
     // Open input.txt or panic
     FILE *f = fopen("input.txt", "r");
@@ -104,15 +104,15 @@ int parse_input(stringVec *map, Guard *guard)
         return 1;
     }
 
-    *map = newstringVec();
+    *map = new_string_Vec();
     // Loop over characters in the file
     int ch;
-    charVec row = newcharVec();
+    char_Vec row = new_char_Vec();
     while ((ch = getc(f)) != EOF)
     {
         if (ch == '.' || ch == '#')
         {
-            appendchar(&row, (char)ch);
+            append_char_Vec(&row, (char)ch);
         }
         else if (ch == '^' || ch == '>' || ch == 'v' || ch == '<')
         {
@@ -132,15 +132,15 @@ int parse_input(stringVec *map, Guard *guard)
             }
             guard->row = map->len;
             guard->col = row.len;
-            appendchar(&row, (char)ch);
+            append_char_Vec(&row, (char)ch);
         }
         else if (ch == '\n')
         {
             // Add terminator for the string and put it on the string vector
-            appendchar(&row, '\0');
-            appendstring(map, row.arr);
+            append_char_Vec(&row, '\0');
+            append_string_Vec(map, row.arr);
             // Generate a new char vector for the next iteration
-            row = newcharVec();
+            row = new_char_Vec();
         }
         else
         {
@@ -150,11 +150,11 @@ int parse_input(stringVec *map, Guard *guard)
             return 1;
         }
     }
-    // If relevant, append the last row. Otherwise, just free the row
+    // If relevant, append__Vec the last row. Otherwise, just free the row
     if (row.len > 0)
     {
-        appendchar(&row, '\0');
-        appendstring(map, row.arr);
+        append_char_Vec(&row, '\0');
+        append_string_Vec(map, row.arr);
     }
     else
         free(row.arr);
@@ -176,9 +176,9 @@ void print_map(char **map, size_t row_count)
 /// @param row_count The number of rows in `map`
 /// @param guard The guard location and direction
 /// @return All unique visited tiles, excluding the guard start
-PositionVec unique_visited_tiles(char **map, size_t row_count, Guard guard)
+Position_Vec unique_visited_tiles(char **map, size_t row_count, Guard guard)
 {
-    PositionVec unique_tiles = newPositionVec();
+    Position_Vec unique_tiles = new_Position_Vec();
     // Mark the starting point as visited to prevent it from being added to the vector
     map[guard.row][guard.col] = 'X';
     // Get the maximum number of tiles as a safeguard in case we get stuck
@@ -190,7 +190,7 @@ PositionVec unique_visited_tiles(char **map, size_t row_count, Guard guard)
             break;
         // Check if this a new tile and it's not the start tile
         else if (move == 1)
-            appendPosition(&unique_tiles, (Position){(int)(guard.row), (int)(guard.col)});
+            append_Position_Vec(&unique_tiles, (Position){(int)(guard.row), (int)(guard.col)});
     }
     return unique_tiles;
 }

@@ -3,7 +3,7 @@
 #include <string.h>
 #include <limits.h>
 
-#include "../vector_template.h"
+#include "../c-data-structures/vector/vector_template.h"
 
 #define CODE_LENGTH 4
 #define CODE_COUNT 5

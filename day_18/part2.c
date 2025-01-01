@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdbit.h>
 
-#include "../vector_template.h"
+#include "../c-data-structures/vector/vector_template.h"
 
 // Helper to index a 1D array as 2D
 #define IDX_2D(arr, row, col) arr[((row) * map_row_size) + (col)]
@@ -39,7 +39,7 @@ typedef struct MazeMoveHeap
 } MazeMoveHeap;
 
 // IO
-int parse_input(char *input_file, PointVec *points);
+int parse_input(char *input_file, Point_Vec *points);
 void print_grid(char **grid, int map_size);
 
 // Problem steps
@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
     // The number of points to read
     // int point_count = (argc >= 4) ? atoi(argv[3]) : 12;
 
-    PointVec points;
+    Point_Vec points;
 
     if (parse_input(input_file, &points))
         return 1;
@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
 /// @param input_file The file to read
 /// @param points Out: The point array to read into
 /// @return 0 if success. 1 if failure.
-int parse_input(char *input_file, PointVec *points)
+int parse_input(char *input_file, Point_Vec *points)
 {
     // Open input.txt or panic
     FILE *f = input_file ? fopen(input_file, "r") : stdin;
@@ -94,12 +94,12 @@ int parse_input(char *input_file, PointVec *points)
     }
 
     // Store the original value of *point_count as max_points so we can have a limit, then zero *point_count so we can actually count
-    *points = newPointVec();
+    *points = new_Point_Vec();
 
     // Read while below maximum point count
     Point p;
     while (fscanf(f, "%hd,%hd\n", &p.col, &p.row) == 2)
-        appendPoint(points, p);
+        append_Point_Vec(points, p);
 
     fclose(f);
     return 0;

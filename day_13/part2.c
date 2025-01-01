@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <limits.h>
 
-#include "../vector_template.h"
+#include "../c-data-structures/vector/vector_template.h"
 
 #define A_PRICE 3
 #define B_PRICE 1
@@ -23,7 +23,7 @@ typedef struct ClawMachine
 
 DEF_VEC(ClawMachine)
 
-int parse_input(char *input_file, ClawMachineVec *claw_machines);
+int parse_input(char *input_file, ClawMachine_Vec *claw_machines);
 long long count_total_tokens(ClawMachine *claw_machines, size_t claw_machines_size);
 long long min_tokens(ClawMachine claw_machine);
 void print_claw_machine(ClawMachine claw_machine);
@@ -31,7 +31,7 @@ long long min(long long a, long long b);
 
 int main(int argc, char *argv[])
 {
-    ClawMachineVec claw_machines;
+    ClawMachine_Vec claw_machines;
     char *input_file = (argc >= 2) ? argv[1] : NULL;
     if (parse_input(input_file, &claw_machines))
         return 1;
@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 /// @param input_file The path of the file to input from. If null, stdin will be used
 /// @param claw_machines Out: The vector of claw machines
 /// @return 0 if success, non-zero if failure
-int parse_input(char *input_file, ClawMachineVec *claw_machines)
+int parse_input(char *input_file, ClawMachine_Vec *claw_machines)
 {
     // Open input.txt or panic
     FILE *f = input_file ? fopen(input_file, "r") : stdin;
@@ -60,7 +60,7 @@ int parse_input(char *input_file, ClawMachineVec *claw_machines)
         return 1;
     }
 
-    *claw_machines = newClawMachineVec();
+    *claw_machines = new_ClawMachine_Vec();
 
     ClawMachine claw_machine;
     while (fscanf(
@@ -82,7 +82,7 @@ int parse_input(char *input_file, ClawMachineVec *claw_machines)
         }
         claw_machine.target.x += INCREASE_AMOUNT;
         claw_machine.target.y += INCREASE_AMOUNT;
-        appendClawMachine(claw_machines, claw_machine);
+        append_ClawMachine_Vec(claw_machines, claw_machine);
     }
     return 0;
 }

@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../vector_template.h"
+#include "../c-data-structures/vector/vector_template.h"
 
 DEF_VEC(int)
 
 void print_arr(int *arr, int size);
-intVec parse_input_row(FILE *input_text);
+int_Vec parse_input_row(FILE *input_text);
 int is_safe(int *report, size_t report_size);
 
 int main(int argc, char const *argv[])
@@ -18,7 +18,7 @@ int main(int argc, char const *argv[])
         return 1;
     }
     // Get the first row
-    intVec row = parse_input_row(f);
+    int_Vec row = parse_input_row(f);
 
     // For counting safe reports
     int safe_count = 0;
@@ -54,9 +54,9 @@ void print_arr(int *arr, int size)
     printf("]");
 }
 
-intVec parse_input_row(FILE *input_text)
+int_Vec parse_input_row(FILE *input_text)
 {
-    intVec report = newintVec();
+    int_Vec report = new_int_Vec();
     int current_number = 0;
     int ch = getc(input_text);
     // Parse character by character
@@ -65,7 +65,7 @@ intVec parse_input_row(FILE *input_text)
         if (ch == ' ')
         {
             // If a space is found, commit the last number and restart
-            appendint(&report, current_number);
+            append_int_Vec(&report, current_number);
             current_number = 0;
         }
         else
@@ -75,9 +75,9 @@ intVec parse_input_row(FILE *input_text)
         }
         ch = getc(input_text);
     }
-    // Assuming there was any numbers, append the last number
+    // Assuming there was any numbers, append__Vec the last number
     if (current_number)
-        appendint(&report, current_number);
+        append_int_Vec(&report, current_number);
 
     return report;
 }

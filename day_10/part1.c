@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../vector_template.h"
+#include "../c-data-structures/vector/vector_template.h"
 
 #define IN_FILE "input.txt"
 
@@ -10,8 +10,8 @@
 #define IDX_2D(arr, row, col) arr[((row) * map_row_size) + (col)]
 
 DEF_VEC(int)
-DEF_VEC(intVec)
-void deleteintVecVec(intVecVec *vec)
+DEF_VEC(int_Vec)
+void deleteint_Vec_Vec(int_Vec_Vec *vec)
 {
     for (size_t i = 0; i < vec->len; i++)
         free(vec->arr[i].arr);
@@ -38,15 +38,15 @@ typedef struct MapSquare
     int height;
 } MapSquare;
 
-int parse_input(intVecVec *map);
-long long get_total_trailhead_score(intVecVec map);
+int parse_input(int_Vec_Vec *map);
+long long get_total_trailhead_score(int_Vec_Vec map);
 Point *get_reachable_peaks(MapSquare *map, size_t map_size, size_t map_row_size, size_t row, size_t col, int *return_size);
 Point *union_point_arrays(Point *arr1, int arr1_size, Point *arr2, int arr2_size, int *return_size);
 
 int main(int argc, char const *argv[])
 {
     int is_error;
-    intVecVec map;
+    int_Vec_Vec map;
     if (parse_input(&map))
     {
         is_error = 1;
@@ -57,7 +57,7 @@ int main(int argc, char const *argv[])
 
     // Cleanup
     is_error = 0;
-    deleteintVecVec(&map);
+    deleteint_Vec_Vec(&map);
 END:
     return is_error;
 }
@@ -65,7 +65,7 @@ END:
 /// @brief Parse input into a 2D vector of MapSquare
 /// @param map Out: The vector of MapSquare
 /// @return 0 if success, non-zero if failure
-int parse_input(intVecVec *map)
+int parse_input(int_Vec_Vec *map)
 {
     // Open input.txt or panic
     FILE *f = fopen(IN_FILE, "r");
@@ -76,30 +76,30 @@ int parse_input(intVecVec *map)
     }
 
     // Parse file
-    *map = newintVecVec();
+    *map = new_int_Vec_Vec();
     int ch;
-    intVec row = newintVec();
+    int_Vec row = new_int_Vec();
     while ((ch = getc(f)) != EOF)
     {
         if ('0' <= ch && ch <= '9')
         {
-            appendint(&row, (int)(ch - '0'));
+            append_int_Vec(&row, (int)(ch - '0'));
         }
         else if (ch == '\n')
         {
-            appendintVec(map, row);
-            row = newintVec();
+            append_int_Vec_Vec(map, row);
+            row = new_int_Vec();
         }
         else
         {
             // Error: cleanup and return
-            deleteintVecVec(map);
+            deleteint_Vec_Vec(map);
             return 1;
         }
     }
-    // If relevant, append the last row. Otherwise, just free the row
+    // If relevant, append__Vec the last row. Otherwise, just free the row
     if (row.len > 0)
-        appendintVec(map, row);
+        append_int_Vec_Vec(map, row);
     else
         free(row.arr);
 
@@ -109,7 +109,7 @@ int parse_input(intVecVec *map)
 /// @brief The the total score of all trailheads, according to day 10 part 1
 /// @param map A 2d vector of map heights
 /// @return The total score of all trailheads in `map`
-long long get_total_trailhead_score(intVecVec map)
+long long get_total_trailhead_score(int_Vec_Vec map)
 {
     long long total_score = 0LL;
     // The number of rows if map

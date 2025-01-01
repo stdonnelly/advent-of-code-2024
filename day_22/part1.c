@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../vector_template.h"
+#include "../c-data-structures/vector/vector_template.h"
 
 #define ITERATIONS 2000
 // 16777216-1
@@ -9,14 +9,14 @@
 
 DEF_VEC(int)
 
-int parse_input(char *input_file, intVec *nums);
+int parse_input(char *input_file, int_Vec *nums);
 long long get_secret_number_sum(int *nums, size_t nums_size);
 int get_next_number(int num);
 
 int main(int argc, char *argv[])
 {
     char *input_file = (argc >= 2) ? argv[1] : NULL;
-    intVec nums;
+    int_Vec nums;
 
     if (parse_input(input_file, &nums))
         return 1;
@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
 /// @param input_file The path of the file to input from. If null, stdin will be used
 /// @param nums Out: the vector of numbers in the input file
 /// @return 0 if successful, 1 if unsuccessful
-int parse_input(char *input_file, intVec *nums)
+int parse_input(char *input_file, int_Vec *nums)
 {
     // Open input.txt or panic
     FILE *f = input_file ? fopen(input_file, "r") : stdin;
@@ -43,11 +43,11 @@ int parse_input(char *input_file, intVec *nums)
         return 1;
     }
 
-    *nums = newintVec();
+    *nums = new_int_Vec();
 
     int num;
     while (fscanf(f, "%d\n", &num) == 1)
-        appendint(nums, num);
+        append_int_Vec(nums, num);
 
     return 0;
 }

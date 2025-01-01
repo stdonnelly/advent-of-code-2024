@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../vector_template.h"
+#include "../c-data-structures/vector/vector_template.h"
 
 #define KEY_WIDTH 5
 #define KEY_HEIGHT 7
@@ -14,7 +14,7 @@ typedef struct KeyLock
 
 DEF_VEC(KeyLock)
 
-int parse_input(char *input_file, KeyLockVec *keys, KeyLockVec *locks);
+int parse_input(char *input_file, KeyLock_Vec *keys, KeyLock_Vec *locks);
 long long count_unique_valid_pairs(KeyLock *keys, size_t keys_size, KeyLock *locks, size_t locks_size);
 int is_valid_pair(KeyLock key, KeyLock lock);
 void print_key_lock(KeyLock key_lock);
@@ -22,7 +22,7 @@ void print_key_lock(KeyLock key_lock);
 int main(int argc, char *argv[])
 {
     char *input_file = (argc >= 2) ? argv[1] : NULL;
-    KeyLockVec keys, locks;
+    KeyLock_Vec keys, locks;
 
     if (parse_input(input_file, &keys, &locks))
         return 1;
@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
 /// @param keys Out: A vector if keys
 /// @param locks Out: A vector of locks
 /// @return 0 if successful, 1 if unsuccessful
-int parse_input(char *input_file, KeyLockVec *keys, KeyLockVec *locks)
+int parse_input(char *input_file, KeyLock_Vec *keys, KeyLock_Vec *locks)
 {
     int is_error = 0;
     // Open input.txt or panic
@@ -66,8 +66,8 @@ int parse_input(char *input_file, KeyLockVec *keys, KeyLockVec *locks)
         return 1;
     }
 
-    *keys = newKeyLockVec();
-    *locks = newKeyLockVec();
+    *keys = new_KeyLock_Vec();
+    *locks = new_KeyLock_Vec();
 
     char input_buffer[KEY_WIDTH + 2];
 
@@ -144,9 +144,9 @@ int parse_input(char *input_file, KeyLockVec *keys, KeyLockVec *locks)
 
         // Put the key/lock into the appropriate vector
         if (is_key)
-            appendKeyLock(keys, this_key_lock);
+            append_KeyLock_Vec(keys, this_key_lock);
         else
-            appendKeyLock(locks, this_key_lock);
+            append_KeyLock_Vec(locks, this_key_lock);
     }
 
 CLOSE_FILE:

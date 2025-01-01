@@ -3,7 +3,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "../vector_template.h"
+#include "../c-data-structures/vector/vector_template.h"
 
 // 26 * 26
 #define ADJACENCY_MAT_SIZE 676
@@ -23,7 +23,7 @@ typedef struct Connection
 DEF_VEC(Connection)
 DEF_VEC(short)
 
-int parse_input(char *input_file, ConnectionVec *connections);
+int parse_input(char *input_file, Connection_Vec *connections);
 long long count_sets_of_3(Connection *connections, size_t connections_size);
 long long count_adjacencies(bool **adjacency_matrix, short original_element, short this_element, short *neighbors_to_try, size_t neighbors_to_try_size);
 short *find_lan_party(Connection *connections, size_t connections_size, int *return_size);
@@ -33,7 +33,7 @@ bool is_clique(bool **adjacency_matrix, short *computers, int computers_size);
 int main(int argc, char *argv[])
 {
     char *input_file = (argc >= 2) ? argv[1] : NULL;
-    ConnectionVec connections;
+    Connection_Vec connections;
 
     if (parse_input(input_file, &connections))
         return 1;
@@ -58,7 +58,7 @@ int main(int argc, char *argv[])
 /// @param input_file The path of the file to input from. If null, stdin will be used
 /// @param connections Out: the vector of connections in input.txt
 /// @return 0 if successful, 1 if unsuccessful
-int parse_input(char *input_file, ConnectionVec *connections)
+int parse_input(char *input_file, Connection_Vec *connections)
 {
     // Open input.txt or panic
     FILE *f = input_file ? fopen(input_file, "r") : stdin;
@@ -68,11 +68,11 @@ int parse_input(char *input_file, ConnectionVec *connections)
         return 1;
     }
 
-    *connections = newConnectionVec();
+    *connections = new_Connection_Vec();
 
     Connection conn;
     while (fscanf(f, "%2c-%2c\n", conn.lhs, conn.rhs) == 2)
-        appendConnection(connections, conn);
+        append_Connection_Vec(connections, conn);
     return 0;
 }
 
@@ -128,7 +128,7 @@ long long count_sets_of_3(Connection *connections, size_t connections_size)
         adjacency_matrix[rhs_index][lhs_index] = true;
     }
 
-    shortVec neighbors = newshortVec();
+    short_Vec neighbors = new_short_Vec();
 
     // Loop over all computers starting with t
     for (int i = (('t' - 'a') * 26); i <= (('t' - 'a') * 26) + ('z' - 'a'); i++)
@@ -147,7 +147,7 @@ long long count_sets_of_3(Connection *connections, size_t connections_size)
                 // Check its neighbors
                 set_count += count_adjacencies(adjacency_matrix, i, j, neighbors.arr, neighbors.len);
                 // Add it to the vector of known adjacencies
-                appendshort(&neighbors, j);
+                append_short_Vec(&neighbors, j);
             }
         }
 

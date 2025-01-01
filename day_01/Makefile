@@ -11,7 +11,7 @@ part1: part1.c ../c-data-structures/merge_sort/libmerge_sort.a
 part2: part2.c ../c-data-structures/merge_sort/libmerge_sort.a
 	$(CXX) $(DEBUG_FLAGS) $< -L../c-data-structures/merge_sort -lmerge_sort -o $@
 
-../c-data-structures/merge_sort/libmerge_sort.a: FORCE
+../c-data-structures/merge_sort/libmerge_sort.a:
 	$(MAKE) -C ../c-data-structures/merge_sort libmerge_sort.a
 
 clean:

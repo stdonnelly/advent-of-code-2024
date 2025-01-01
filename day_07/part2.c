@@ -4,13 +4,13 @@
 
 // Long long vector
 // Manually defined instead of using the template because `long long` has a space
-typedef struct LLVec
+typedef struct LL_Vec
 {
     long long *arr;
     size_t len;
     size_t cap;
-} LLVec;
-void appendLLVec(LLVec *vec, long long val)
+} LL_Vec;
+void append_LL_Vec_Vec(LL_Vec *vec, long long val)
 {
     if (vec->len + 1 > vec->cap)
     {
@@ -20,9 +20,9 @@ void appendLLVec(LLVec *vec, long long val)
     }
     vec->arr[vec->len++] = val;
 }
-LLVec newLLVec() { return (LLVec){NULL, 0UL, 0UL}; }
+LL_Vec new_LL_Vec() { return (LL_Vec){NULL, 0UL, 0UL}; }
 
-long long parse_input_line(FILE *f, LLVec *operands);
+long long parse_input_line(FILE *f, LL_Vec *operands);
 int valid_values(long long target, long long *operands, size_t operands_size);
 void print_arr(long long *arr, size_t arr_size);
 long long un_concat_10(long long operand, long long sum);
@@ -30,7 +30,7 @@ long long un_concat_10(long long operand, long long sum);
 int main(int argc, char const *argv[])
 {
     long long total = 0LL;
-    LLVec operands = newLLVec();
+    LL_Vec operands = new_LL_Vec();
     FILE *f = fopen("input.txt", "r");
 
     long long target = parse_input_line(f, &operands);
@@ -67,7 +67,7 @@ int main(int argc, char const *argv[])
 /// @param f The input file
 /// @param operands An initialized vector of `long long` where the operands will be placed
 /// @return The target value, or 0 if the end of the file has been reached
-long long parse_input_line(FILE *f, LLVec *operands)
+long long parse_input_line(FILE *f, LL_Vec *operands)
 {
     // Return early if we can't find the target
     long long target;
@@ -77,7 +77,7 @@ long long parse_input_line(FILE *f, LLVec *operands)
     // Loop until a newline is found
     long long operand;
     while (getc(f) != '\n' && !feof(f) && fscanf(f, "%lld", &operand))
-        appendLLVec(operands, operand);
+        append_LL_Vec_Vec(operands, operand);
 
     return target;
 }

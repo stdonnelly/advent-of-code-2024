@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../vector_template.h"
+#include "../c-data-structures/vector/vector_template.h"
 
 // Helper to index a 1D array as 2D
 #define IDX_2D(arr, row, col) arr[((row) * map_row_size) + (col)]
@@ -11,7 +11,7 @@ typedef char *string;
 
 DEF_VEC(char)
 DEF_VEC(string)
-void delete_string_vec(stringVec *vec)
+void delete_string_vec(string_Vec *vec)
 {
     for (int i = 0; i < vec->len; i++)
         free(vec->arr[i]);
@@ -39,7 +39,7 @@ typedef struct Plant
     char attr;
 } Plant;
 
-int parse_input(char *input_file, stringVec *map);
+int parse_input(char *input_file, string_Vec *map);
 long long get_total_fencing(char **map, size_t map_size);
 long long get_region_price(Plant *map, size_t map_size, size_t map_row_size, int row, int col, long long *area);
 void print_map(char **map, size_t map_size);
@@ -50,7 +50,7 @@ int add_fence(Plant *map, size_t map_size, size_t map_row_size, int row, int col
 int main(int argc, char *argv[])
 {
     // Get input
-    stringVec map;
+    string_Vec map;
     char *input_file = (argc >= 2) ? argv[1] : NULL;
     if (parse_input(input_file, &map))
         return 1;
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 /// @param input_file The path of the file to input from. If null, stdin will be used
 /// @param map Out: the file after it's loaded
 /// @return 0 if success, non-zero if failure
-int parse_input(char *input_file, stringVec *map)
+int parse_input(char *input_file, string_Vec *map)
 {
     // Open input.txt or panic
     FILE *f = input_file ? fopen(input_file, "r") : stdin;
@@ -79,20 +79,20 @@ int parse_input(char *input_file, stringVec *map)
         return 1;
     }
 
-    *map = newstringVec();
+    *map = new_string_Vec();
 
     int ch;
-    charVec row = newcharVec();
+    char_Vec row = new_char_Vec();
     while ((ch = getc(f)) != EOF)
     {
         if (ch != '\n')
-            // Anything other than EOF and newline can just get appended to the vector
-            appendchar(&row, (char)ch);
+            // Anything other than EOF and newline can just get append_ed_Vec to the vector
+            append_char_Vec(&row, (char)ch);
         else
         {
             // Add terminator for the string and put it on the string vector
-            appendchar(&row, '\0');
-            appendstring(map, row.arr);
+            append_char_Vec(&row, '\0');
+            append_string_Vec(map, row.arr);
             // Generate a new char vector for the next iteration
             // Slight optimization: start with a capacity of this array's length
             row.arr = malloc(sizeof(row.arr[0]) * row.len);
@@ -101,11 +101,11 @@ int parse_input(char *input_file, stringVec *map)
         }
     }
 
-    // If relevant, append the last row. Otherwise, just free the row
+    // If relevant, append__Vec the last row. Otherwise, just free the row
     if (row.len > 0)
     {
-        appendchar(&row, '\0');
-        appendstring(map, row.arr);
+        append_char_Vec(&row, '\0');
+        append_string_Vec(map, row.arr);
     }
     else
         free(row.arr);

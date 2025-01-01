@@ -9,7 +9,7 @@ typedef struct ListNode
 } ListNode;
 
 int parse_input(char *input_file, ListNode **head);
-ListNode *append(ListNode *tail, long long val);
+ListNode *append__Vec(ListNode *tail, long long val);
 void insert_after(ListNode *parent, long long val);
 int split_digits(long long n, long long *most_sig, long long *least_sig);
 int log_10(long long n);
@@ -73,7 +73,7 @@ int parse_input(char *input_file, ListNode **head)
     ListNode *tail = &pre_head;
     long long val;
     while (fscanf(f, "%lld", &val) != EOF)
-        tail = append(tail, val);
+        tail = append__Vec(tail, val);
     tail->next = NULL;
     *head = pre_head.next;
 
@@ -81,10 +81,10 @@ int parse_input(char *input_file, ListNode **head)
 }
 
 /// @brief Append the value to tail
-/// @param tail The tail of the list to append
-/// @param val The value to append
+/// @param tail The tail of the list to append__Vec
+/// @param val The value to append__Vec
 /// @return The new tail
-ListNode *append(ListNode *tail, long long val)
+ListNode *append__Vec(ListNode *tail, long long val)
 {
     tail = tail->next = malloc(sizeof(ListNode));
     tail->val = val;

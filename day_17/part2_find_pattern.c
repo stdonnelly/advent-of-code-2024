@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../vector_template.h"
+#include "../c-data-structures/vector/vector_template.h"
 
 DEF_VEC(int)
 
@@ -10,14 +10,14 @@ int ip = 0;
 // "Registers"
 int ra, rb, rc;
 
-int parse_input(char *input_file, intVec *program);
+int parse_input(char *input_file, int_Vec *program);
 void execute_program(int *program, size_t program_size);
 
 int main(int argc, char *argv[])
 {
     char *input_file = (argc >= 2) ? argv[1] : NULL;
     // int ra, rb, rc;
-    intVec program;
+    int_Vec program;
 
     if (parse_input(input_file, &program))
         return 1;
@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
 /// @param input_file The input file
 /// @param program Out: The program array
 /// @return 0 if successful, 1 if failed
-int parse_input(char *input_file, intVec *program)
+int parse_input(char *input_file, int_Vec *program)
 {
     // Open input.txt or panic
     FILE *f = input_file ? fopen(input_file, "r") : stdin;
@@ -77,7 +77,7 @@ int parse_input(char *input_file, intVec *program)
     // Loop over the program array
     while (scanf_result && (scanf_result != EOF))
     {
-        appendint(program, program_num);
+        append_int_Vec(program, program_num);
         scanf_result = fscanf(f, ",%d", &program_num);
     }
 

@@ -2,8 +2,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../vector_template.h"
-#include "../hash_map.h"
+#include "../c-data-structures/vector/vector_template.h"
+#include "../c-data-structures/hash_map/hash_map.h"
 
 #define ADDER_REF_NAME "45-bit_adder.txt"
 
@@ -38,7 +38,7 @@ typedef struct OperationTreeNode
 } OperationTreeNode;
 
 // Part 1
-int parse_input(char *input_file, long long *x, long long *y, OperationVec *operations);
+int parse_input(char *input_file, long long *x, long long *y, Operation_Vec *operations);
 long long perform_all_operations(long long x, long long y, Operation *operations, size_t operations_size);
 OperationListNode *to_linked_list(Operation *arr, size_t size, OperationListNode **tail);
 
@@ -54,7 +54,7 @@ int main(int argc, char *argv[])
 {
     char *input_file = (argc >= 2) ? argv[1] : NULL;
     long long x, y;
-    OperationVec operations;
+    Operation_Vec operations;
 
     if (parse_input(input_file, &x, &y, &operations))
         return 1;
@@ -78,7 +78,7 @@ int main(int argc, char *argv[])
 /// @param y Out: The y value
 /// @param operations Out: A vector of operations to perform
 /// @return 0 if successful, 1 if unsuccessful
-int parse_input(char *input_file, long long *x, long long *y, OperationVec *operations)
+int parse_input(char *input_file, long long *x, long long *y, Operation_Vec *operations)
 {
     // Open input.txt or panic
     FILE *f = input_file ? fopen(input_file, "r") : stdin;
@@ -124,7 +124,7 @@ int parse_input(char *input_file, long long *x, long long *y, OperationVec *oper
 
     // Parse operations
     {
-        *operations = newOperationVec();
+        *operations = new_Operation_Vec();
         Operation op;
         char operation_type[4];
 
@@ -143,7 +143,7 @@ int parse_input(char *input_file, long long *x, long long *y, OperationVec *oper
                 free(operations->arr);
                 return 1;
             }
-            appendOperation(operations, op);
+            append_Operation_Vec(operations, op);
         }
     }
 
@@ -550,7 +550,7 @@ void print_all_incorrect_operations(Operation *operations, size_t operations_siz
 {
     // Parse the expected adder
     long long x, y;
-    OperationVec expected_operations_vec;
+    Operation_Vec expected_operations_vec;
     if (parse_input(ADDER_REF_NAME, &x, &y, &expected_operations_vec))
     {
         fprintf(stderr, "Error opening '%s'\n", ADDER_REF_NAME);

@@ -1,18 +1,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../vector_template.h"
+#include "../c-data-structures/vector/vector_template.h"
 #include "../c-data-structures/merge_sort/merge_sort.h"
 
 DEF_VEC(int)
 
-int parse_input(intVec *left_list, intVec *right_list);
+int parse_input(int_Vec *left_list, int_Vec *right_list);
 int similarity_score(int *left, int *right, size_t n);
 
 int main(int argc, char const *argv[])
 {
     // Parse the input
-    intVec left_list, right_list;
+    int_Vec left_list, right_list;
     if (parse_input(&left_list, &right_list))
         return 1;
 
@@ -30,10 +30,10 @@ int main(int argc, char const *argv[])
     return 0;
 }
 
-int parse_input(intVec *left_list, intVec *right_list)
+int parse_input(int_Vec *left_list, int_Vec *right_list)
 {
-    *left_list = newintVec();
-    *right_list = newintVec();
+    *left_list = new_int_Vec();
+    *right_list = new_int_Vec();
 
     FILE *f = fopen("input.txt", "r");
 
@@ -47,8 +47,8 @@ int parse_input(intVec *left_list, intVec *right_list)
     while (fscanf(f, "%d   %d\n", &left, &right) == 2)
     {
         printf("%d   %d\n", left, right);
-        appendint(left_list, left);
-        appendint(right_list, right);
+        append_int_Vec(left_list, left);
+        append_int_Vec(right_list, right);
     }
 
     fclose(f);

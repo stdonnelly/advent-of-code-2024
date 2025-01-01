@@ -3,7 +3,7 @@
 #include <string.h>
 #include <stdbit.h>
 
-#include "../vector_template.h"
+#include "../c-data-structures/vector/vector_template.h"
 
 // The minimum number of units to save in a cheat
 #define MIN_SAVE 100
@@ -12,7 +12,7 @@
 typedef char *string;
 DEF_VEC(char)
 DEF_VEC(string)
-void delete_string_vec(stringVec *vec)
+void delete_string_vec(string_Vec *vec)
 {
     for (int i = 0; i < vec->len; i++)
         free(vec->arr[i]);
@@ -56,7 +56,7 @@ typedef struct MazeMoveHeap
 } MazeMoveHeap;
 
 // IO
-int parse_input(char *input_file, stringVec *map, Point *start, Point *end);
+int parse_input(char *input_file, string_Vec *map, Point *start, Point *end);
 void print_map(char **map, size_t map_size, Point start, Point end);
 
 // Priority queue
@@ -79,7 +79,7 @@ Point *find_points_at_taxicab_distance(Point center, int distance, size_t *retur
 int main(int argc, char *argv[])
 {
     char *input_file = (argc >= 2) ? argv[1] : NULL;
-    stringVec map;
+    string_Vec map;
     Point start;
     Point end;
 
@@ -103,7 +103,7 @@ int main(int argc, char *argv[])
 /// @param start Out: The starting point
 /// @param end Out: The ending point
 /// @return 0 if successful, 1 if unsuccessful
-int parse_input(char *input_file, stringVec *map, Point *start, Point *end)
+int parse_input(char *input_file, string_Vec *map, Point *start, Point *end)
 {
     // Open input.txt or panic
     FILE *f = input_file ? fopen(input_file, "r") : stdin;
@@ -113,32 +113,32 @@ int parse_input(char *input_file, stringVec *map, Point *start, Point *end)
         return 1;
     }
 
-    *map = newstringVec();
+    *map = new_string_Vec();
 
     int ch;
-    charVec row = newcharVec();
+    char_Vec row = new_char_Vec();
     while ((ch = getc(f)) != EOF)
     {
         switch (ch)
         {
         case '.':
         case '#':
-            appendchar(&row, (char)ch);
+            append_char_Vec(&row, (char)ch);
             break;
         case 'S':
             start->row = map->len;
             start->col = row.len;
-            appendchar(&row, '.');
+            append_char_Vec(&row, '.');
             break;
         case 'E':
             end->row = map->len;
             end->col = row.len;
-            appendchar(&row, '.');
+            append_char_Vec(&row, '.');
             break;
         case '\n':
             // Add terminator for the string and put it on the string vector
-            appendchar(&row, '\0');
-            appendstring(map, row.arr);
+            append_char_Vec(&row, '\0');
+            append_string_Vec(map, row.arr);
             // Generate a new char vector for the next iteration
             // Slight optimization: start with a capacity of this array's length
             row.arr = malloc(sizeof(row.arr[0]) * row.len);
@@ -154,11 +154,11 @@ int parse_input(char *input_file, stringVec *map, Point *start, Point *end)
         }
     }
 
-    // If relevant, append the last row. Otherwise, just free the row
+    // If relevant, append__Vec the last row. Otherwise, just free the row
     if (row.len > 0)
     {
-        appendchar(&row, '\0');
-        appendstring(map, row.arr);
+        append_char_Vec(&row, '\0');
+        append_string_Vec(map, row.arr);
     }
     else
         free(row.arr);

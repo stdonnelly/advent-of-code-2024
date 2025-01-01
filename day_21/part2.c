@@ -4,8 +4,8 @@
 #include <limits.h>
 #include <stdckdint.h>
 
-#include "../vector_template.h"
-#include "../hash_map.h"
+#include "../c-data-structures/vector/vector_template.h"
+#include "../c-data-structures/hash_map/hash_map.h"
 
 #define CODE_LENGTH 4
 #define CODE_COUNT 5
@@ -234,9 +234,10 @@ short get_col_of(char key, int is_numpad)
 long long get_shortest_sequence(char *code, int is_numpad, int depth)
 {
     // Check cache
-    long long sequence_cost = get_map(&(caches[depth]), code);
-    if (sequence_cost != -1)
-        return sequence_cost;
+    long long sequence_cost;
+    union Value sequence_cost_v;
+    if (get_map(&(caches[depth]), code, &sequence_cost_v))
+        return sequence_cost_v.val;
     else
         // Set to zero so we can use it in the rest of the program
         sequence_cost = 0;
@@ -338,6 +339,6 @@ long long get_shortest_sequence(char *code, int is_numpad, int depth)
     }
 
     // Cache
-    put_map(&(caches[depth]), code, sequence_cost);
+    put_map(&(caches[depth]), code, (union Value){.val = sequence_cost});
     return sequence_cost;
 }

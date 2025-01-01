@@ -2,13 +2,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../vector_template.h"
+#include "../c-data-structures/vector/vector_template.h"
 
 // Define char and char* vectors
 typedef char *string;
 DEF_VEC(char)
 DEF_VEC(string)
-void delete_string_vec(stringVec *vec)
+void delete_string_vec(string_Vec *vec)
 {
     for (int i = 0; i < vec->len; i++)
         free(vec->arr[i]);
@@ -34,7 +34,7 @@ typedef struct Guard
     Direction dir;
 } Guard;
 
-int parse_input(stringVec *map, Guard *guard);
+int parse_input(string_Vec *map, Guard *guard);
 int move_guard(Guard *guard, char **map, size_t row_count);
 // Rotate direction right and return the rotated direction
 Direction rotate_right(Direction dir) { return (dir + 1) % (LEFT + 1); }
@@ -44,7 +44,7 @@ char peek_guard(Guard guard, char **map, size_t row_count);
 
 int main(int argc, char const *argv[])
 {
-    stringVec map;
+    string_Vec map;
     Guard guard;
 
     // Parse input
@@ -69,7 +69,7 @@ int main(int argc, char const *argv[])
 /// @param map Out parameter: The map for the puzzle
 /// @param guard Out parameter: location and direction of the guard on the map
 /// @return 0 if successful. Some nonzero number if unsuccessful (i.e. IO error)
-int parse_input(stringVec *map, Guard *guard)
+int parse_input(string_Vec *map, Guard *guard)
 {
     // Open input.txt or panic
     FILE *f = fopen("input.txt", "r");
@@ -79,15 +79,15 @@ int parse_input(stringVec *map, Guard *guard)
         return 1;
     }
 
-    *map = newstringVec();
+    *map = new_string_Vec();
     // Loop over characters in the file
     int ch;
-    charVec row = newcharVec();
+    char_Vec row = new_char_Vec();
     while ((ch = getc(f)) != EOF)
     {
         if (ch == '.' || ch == '#')
         {
-            appendchar(&row, (char)ch);
+            append_char_Vec(&row, (char)ch);
         }
         else if (ch == '^' || ch == '>' || ch == 'v' || ch == '<')
         {
@@ -107,15 +107,15 @@ int parse_input(stringVec *map, Guard *guard)
             }
             guard->row = map->len;
             guard->col = row.len;
-            appendchar(&row, (char)ch);
+            append_char_Vec(&row, (char)ch);
         }
         else if (ch == '\n')
         {
             // Add terminator for the string and put it on the string vector
-            appendchar(&row, '\0');
-            appendstring(map, row.arr);
+            append_char_Vec(&row, '\0');
+            append_string_Vec(map, row.arr);
             // Generate a new char vector for the next iteration
-            row = newcharVec();
+            row = new_char_Vec();
         }
         else
         {
@@ -125,11 +125,11 @@ int parse_input(stringVec *map, Guard *guard)
             return 1;
         }
     }
-    // If relevant, append the last row. Otherwise, just free the row
+    // If relevant, append__Vec the last row. Otherwise, just free the row
     if (row.len > 0)
     {
-        appendchar(&row, '\0');
-        appendstring(map, row.arr);
+        append_char_Vec(&row, '\0');
+        append_string_Vec(map, row.arr);
     }
     else
         free(row.arr);

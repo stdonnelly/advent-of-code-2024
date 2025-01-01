@@ -4,8 +4,8 @@
 #include <ctype.h>
 #include <stdbool.h>
 
-#include "../vector_template.h"
-#include "../hash_map.h"
+#include "../c-data-structures/vector/vector_template.h"
+#include "../c-data-structures/hash_map/hash_map.h"
 
 #define SET_WHITE 37
 #define SET_GREEN 32
@@ -15,7 +15,7 @@ typedef char *string;
 
 DEF_VEC(char)
 DEF_VEC(string)
-void delete_string_vec(stringVec *vec)
+void delete_string_vec(string_Vec *vec)
 {
     for (int i = 0; i < vec->len; i++)
         free(vec->arr[i]);
@@ -43,8 +43,8 @@ typedef struct Trie
 } Trie;
 
 // IO
-int parse_input(char *input_file, stringVec *available_towels, stringVec *patterns);
-void print_trie(Trie *root, charVec *prefix);
+int parse_input(char *input_file, string_Vec *available_towels, string_Vec *patterns);
+void print_trie(Trie *root, char_Vec *prefix);
 
 // Trie
 void push_trie(Trie *root, char *word);
@@ -60,8 +60,8 @@ HashMap valid_cache;
 int main(int argc, char *argv[])
 {
     char *input_file = (argc >= 2) ? argv[1] : NULL;
-    stringVec available_towels;
-    stringVec patterns;
+    string_Vec available_towels;
+    string_Vec patterns;
     if (parse_input(input_file, &available_towels, &patterns))
         return 1;
 
@@ -77,7 +77,7 @@ int main(int argc, char *argv[])
 /// @param available_towels Out: The list of available towels
 /// @param patterns Out: The list of patterns to make
 /// @return 0 if success. 1 if failure.
-int parse_input(char *input_file, stringVec *available_towels, stringVec *patterns)
+int parse_input(char *input_file, string_Vec *available_towels, string_Vec *patterns)
 {
     // Open input.txt or panic
     FILE *f = input_file ? fopen(input_file, "r") : stdin;
@@ -89,28 +89,28 @@ int parse_input(char *input_file, stringVec *available_towels, stringVec *patter
     }
 
     // Parse available towels
-    *available_towels = newstringVec();
+    *available_towels = new_string_Vec();
 
     int ch;
-    charVec towel = newcharVec();
+    char_Vec towel = new_char_Vec();
     while ((ch = getc(f)) != EOF)
     {
         if (isalpha(ch))
             // Alphabetic
-            appendchar(&towel, ch);
+            append_char_Vec(&towel, ch);
         else if (ch == ',')
         {
 
             // Add terminator for the string and put it on the string vector
-            appendchar(&towel, '\0');
-            appendstring(available_towels, towel.arr);
-            towel = newcharVec();
+            append_char_Vec(&towel, '\0');
+            append_string_Vec(available_towels, towel.arr);
+            towel = new_char_Vec();
         }
         else if (ch == '\n')
         {
             // Append the last towel and stop checking for towels
-            appendchar(&towel, '\0');
-            appendstring(available_towels, towel.arr);
+            append_char_Vec(&towel, '\0');
+            append_string_Vec(available_towels, towel.arr);
             break;
         }
     }
@@ -127,27 +127,27 @@ int parse_input(char *input_file, stringVec *available_towels, stringVec *patter
     }
 
     // Parse patterns
-    *patterns = newstringVec();
-    charVec pattern = newcharVec();
+    *patterns = new_string_Vec();
+    char_Vec pattern = new_char_Vec();
     while ((ch = getc(f)) != EOF)
     {
         if (isalpha(ch))
             // Alphabetic
-            appendchar(&pattern, ch);
+            append_char_Vec(&pattern, ch);
         else if (ch == '\n')
         {
             // Append the last towel and stop checking for towels
-            appendchar(&pattern, '\0');
-            appendstring(patterns, pattern.arr);
-            pattern = newcharVec();
+            append_char_Vec(&pattern, '\0');
+            append_string_Vec(patterns, pattern.arr);
+            pattern = new_char_Vec();
         }
     }
 
-    // If relevant, append the last row. Otherwise, just free the row
+    // If relevant, append__Vec the last row. Otherwise, just free the row
     if (pattern.len > 0)
     {
-        appendchar(&pattern, '\0');
-        appendstring(patterns, pattern.arr);
+        append_char_Vec(&pattern, '\0');
+        append_string_Vec(patterns, pattern.arr);
     }
     else
         free(pattern.arr);
@@ -157,7 +157,7 @@ int parse_input(char *input_file, stringVec *available_towels, stringVec *patter
 }
 
 // For debugging: Print all elements of `root`
-void print_trie(Trie *root, charVec *prefix)
+void print_trie(Trie *root, char_Vec *prefix)
 {
     if (root->is_tail)
         printf("%s\n", prefix->arr);
@@ -165,9 +165,9 @@ void print_trie(Trie *root, charVec *prefix)
     // Save the current last character index so we can change it later
     size_t this_index = prefix->len;
     // Append NULL to push the next character to after this one
-    appendchar(prefix, '\0');
+    append_char_Vec(prefix, '\0');
     // Append another NULL. This one is for a string terminator
-    appendchar(prefix, '\0');
+    append_char_Vec(prefix, '\0');
     // Reset the length so future calls will overwrite the terminator we just put
     prefix->len = this_index + 1;
 
@@ -296,8 +296,8 @@ long long get_valid_patterns(char **available_towels, size_t available_towels_si
     valid_cache = new_HashMap();
 
     // Debugging: Make sure trie is loaded correctly
-    // charVec prefix_vector = newcharVec();
-    // appendchar(&prefix_vector, '\0');
+    // char_Vec prefix_vector = new_char_Vec();
+    // append_char_Vec(&prefix_vector, '\0');
     // prefix_vector.len = 0;
     // print_trie(towels_trie, &prefix_vector);
     // free(prefix_vector.arr);
@@ -334,9 +334,9 @@ long long get_valid_patterns(char **available_towels, size_t available_towels_si
 long long count_valid(Trie *available_towels, char *pattern)
 {
     // Check cache
-    long long cached = get_map(&valid_cache, pattern);
-    if (cached != -1)
-        return cached;
+    union Value cached_value;
+    if (get_map(&valid_cache, pattern, &cached_value))
+        return cached_value.val;
     // Base case: pattern == "", which has 1 solution
     if (!*pattern)
         return 1;
@@ -361,6 +361,6 @@ long long count_valid(Trie *available_towels, char *pattern)
         this_towel = this_towel->children[color];
     }
 
-    put_map(&valid_cache, pattern, valid_count);
+    put_map(&valid_cache, pattern, (union Value){.val = valid_count});
     return valid_count;
 }

@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include "../vector_template.h"
+#include "../c-data-structures/vector/vector_template.h"
 
 typedef struct OrderRule
 {
@@ -12,8 +12,8 @@ typedef struct OrderRule
 
 DEF_VEC(OrderRule)
 DEF_VEC(short)
-DEF_VEC(shortVec)
-void delete_short_vec_vec(shortVecVec *vec)
+DEF_VEC(short_Vec)
+void delete_short_vec_vec(short_Vec_Vec *vec)
 {
     for (int i = 0; i < vec->len; i++)
     {
@@ -25,16 +25,16 @@ void delete_short_vec_vec(shortVecVec *vec)
     vec->cap = 0UL;
 }
 
-int parse_input(OrderRuleVec *order_rules, shortVecVec *updates);
-int sum_of_corrected_invalid_middles(OrderRule *order_rules, size_t order_rules_size, shortVecVec updates);
+int parse_input(OrderRule_Vec *order_rules, short_Vec_Vec *updates);
+int sum_of_corrected_invalid_middles(OrderRule *order_rules, size_t order_rules_size, short_Vec_Vec updates);
 bool is_valid_update(OrderRule *order_rules, size_t order_rules_size, short *pages, size_t pages_size);
 short *pages_that_must_follow(OrderRule *active_order_rules, size_t active_order_rules_size, short n, size_t *following_pages_count);
 bool arr_contains(short *arr, size_t arr_size, short n);
 
 int main(int argc, char const *argv[])
 {
-    OrderRuleVec order_rules;
-    shortVecVec updates;
+    OrderRule_Vec order_rules;
+    short_Vec_Vec updates;
 
     // Try to parse input
     if (parse_input(&order_rules, &updates))
@@ -51,7 +51,7 @@ int main(int argc, char const *argv[])
 /// @param order_rules out parameter for the order rules vector
 /// @param updates out parameter of updates as a 2D vector. Each row is an update consisting of multiple pages
 /// @return `0` if successful. Some nonzero number if unsuccessful (i.e. IO error)
-int parse_input(OrderRuleVec *order_rules, shortVecVec *updates)
+int parse_input(OrderRule_Vec *order_rules, short_Vec_Vec *updates)
 {
     FILE *f = fopen("input.txt", "r");
     if (f == NULL)
@@ -60,8 +60,8 @@ int parse_input(OrderRuleVec *order_rules, shortVecVec *updates)
         return 1;
     }
 
-    *order_rules = newOrderRuleVec();
-    *updates = newshortVecVec();
+    *order_rules = new_OrderRule_Vec();
+    *updates = new_short_Vec_Vec();
 
     // Get the rule as a string because fscanf does weird things with whitespaces
     char rule_str[7];
@@ -82,7 +82,7 @@ int parse_input(OrderRuleVec *order_rules, shortVecVec *updates)
         // Parse as 2-digit base 10 numbers
         short first = ((rule_str[0] - '0') * 10) + (rule_str[1] - '0');
         short second = ((rule_str[3] - '0') * 10) + (rule_str[4] - '0');
-        appendOrderRule(order_rules, (OrderRule){first, second});
+        append_OrderRule_Vec(order_rules, (OrderRule){first, second});
     }
     if (ferror(f))
     {
@@ -96,14 +96,14 @@ int parse_input(OrderRuleVec *order_rules, shortVecVec *updates)
     short first_page;
     while (fscanf(f, "%2hd", &first_page) == 1)
     {
-        shortVec update = {malloc(sizeof(short)), 1, 1};
+        short_Vec update = {malloc(sizeof(short)), 1, 1};
         update.arr[0] = first_page;
         // Parse the rest of the update
         short page;
         while (fscanf(f, ",%2hd", &page) == 1)
-            appendshort(&update, page);
+            append_short_Vec(&update, page);
         // Add the new update
-        appendshortVec(updates, update);
+        append_short_Vec_Vec(updates, update);
     }
 
     fclose(f);
@@ -115,7 +115,7 @@ int parse_input(OrderRuleVec *order_rules, shortVecVec *updates)
 /// @param order_rules_size The number of elements in `order_rules`
 /// @param updates The list of updates
 /// @return
-int sum_of_corrected_invalid_middles(OrderRule *order_rules, size_t order_rules_size, shortVecVec updates)
+int sum_of_corrected_invalid_middles(OrderRule *order_rules, size_t order_rules_size, short_Vec_Vec updates)
 {
     int sum = 0;
     for (size_t i = 0; i < updates.len; i++)
@@ -137,7 +137,7 @@ bool is_valid_update(OrderRule *order_rules, size_t order_rules_size, short *pag
 {
     bool was_valid = true;
     // An order rule is "active" if the second page has already been found
-    OrderRuleVec active_order_rules = newOrderRuleVec();
+    OrderRule_Vec active_order_rules = new_OrderRule_Vec();
     // Check each page
     for (size_t i = 0; i < pages_size; i++)
     {
@@ -162,7 +162,7 @@ bool is_valid_update(OrderRule *order_rules, size_t order_rules_size, short *pag
         // Forbid subsequent pages that must be before this page
         for (size_t j = 0; j < order_rules_size; j++)
             if (order_rules[j].second == page)
-                appendOrderRule(&active_order_rules, order_rules[j]);
+                append_OrderRule_Vec(&active_order_rules, order_rules[j]);
     }
 
     // If no problems were found, the update is valid
@@ -187,10 +187,10 @@ bool arr_contains(short *arr, size_t arr_size, short n)
 /// @return An array containing the pages that must follow `n`
 short *pages_that_must_follow(OrderRule *active_order_rules, size_t active_order_rules_size, short n, size_t *following_pages_size)
 {
-    shortVec following_pages = newshortVec();
+    short_Vec following_pages = new_short_Vec();
     for (size_t i = 0; i < active_order_rules_size; i++)
         if (n == active_order_rules[i].first)
-            appendshort(&following_pages, active_order_rules[i].second);
+            append_short_Vec(&following_pages, active_order_rules[i].second);
 
     *following_pages_size = following_pages.len;
     return following_pages.arr;

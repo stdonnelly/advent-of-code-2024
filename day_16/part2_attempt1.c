@@ -4,7 +4,7 @@
 #include <limits.h>
 #include <stdbool.h>
 
-#include "../vector_template.h"
+#include "../c-data-structures/vector/vector_template.h"
 
 #define MOVE_COST 1
 #define TURN_COST 1000
@@ -16,7 +16,7 @@
 typedef char *string;
 DEF_VEC(char)
 DEF_VEC(string)
-void delete_string_vec(stringVec *vec)
+void delete_string_vec(string_Vec *vec)
 {
     for (int i = 0; i < vec->len; i++)
         free(vec->arr[i]);
@@ -66,15 +66,15 @@ typedef struct FoundSquare
 } FoundSquare;
 
 // IO
-int parse_input(char *input_file, stringVec *map, Point *start, Point *end);
+int parse_input(char *input_file, string_Vec *map, Point *start, Point *end);
 void print_map(char **map, size_t map_size, Point start, Point end);
 
 // Sub problems
 int get_min_score_paths(char **map, size_t map_size, Point start, Point end);
 int check_is_found(FoundSquare *found_map, int map_size, int map_row_size, int row, int col, Direction direction);
 void mark_found(FoundSquare *found_map, int map_size, int map_row_size, int row, int col, int score, bool from_parent, Direction direction);
-void append_if_not_exists(PointVec *vec, Point point);
-void make_min_paths(FoundSquare *found_map, int map_size, int map_row_size, int row, int col, /*Direction direction,*/ PointVec *path_squares);
+void append__if_not_exists_Vec(Point_Vec *vec, Point point);
+void make_min_paths(FoundSquare *found_map, int map_size, int map_row_size, int row, int col, /*Direction direction,*/ Point_Vec *path_squares);
 
 // Priority queue stuff
 void resize_pq(MazeMoveHeap *heap, int new_cap);
@@ -86,7 +86,7 @@ MazeMove peek_pq(MazeMoveHeap heap);
 int main(int argc, char *argv[])
 {
     char *input_file = (argc >= 2) ? argv[1] : NULL;
-    stringVec map;
+    string_Vec map;
     Point start;
     Point end;
 
@@ -109,7 +109,7 @@ int main(int argc, char *argv[])
 /// @param start Out: The starting point
 /// @param end Out: The ending point
 /// @return 0 if successful, 1 if unsuccessful
-int parse_input(char *input_file, stringVec *map, Point *start, Point *end)
+int parse_input(char *input_file, string_Vec *map, Point *start, Point *end)
 {
     // Open input.txt or panic
     FILE *f = input_file ? fopen(input_file, "r") : stdin;
@@ -119,32 +119,32 @@ int parse_input(char *input_file, stringVec *map, Point *start, Point *end)
         return 1;
     }
 
-    *map = newstringVec();
+    *map = new_string_Vec();
 
     int ch;
-    charVec row = newcharVec();
+    char_Vec row = new_char_Vec();
     while ((ch = getc(f)) != EOF)
     {
         switch (ch)
         {
         case '.':
         case '#':
-            appendchar(&row, (char)ch);
+            append_char_Vec(&row, (char)ch);
             break;
         case 'S':
             start->row = map->len;
             start->col = row.len;
-            appendchar(&row, '.');
+            append_char_Vec(&row, '.');
             break;
         case 'E':
             end->row = map->len;
             end->col = row.len;
-            appendchar(&row, '.');
+            append_char_Vec(&row, '.');
             break;
         case '\n':
             // Add terminator for the string and put it on the string vector
-            appendchar(&row, '\0');
-            appendstring(map, row.arr);
+            append_char_Vec(&row, '\0');
+            append_string_Vec(map, row.arr);
             // Generate a new char vector for the next iteration
             // Slight optimization: start with a capacity of this array's length
             row.arr = malloc(sizeof(row.arr[0]) * row.len);
@@ -160,11 +160,11 @@ int parse_input(char *input_file, stringVec *map, Point *start, Point *end)
         }
     }
 
-    // If relevant, append the last row. Otherwise, just free the row
+    // If relevant, append__Vec the last row. Otherwise, just free the row
     if (row.len > 0)
     {
-        appendchar(&row, '\0');
-        appendstring(map, row.arr);
+        append_char_Vec(&row, '\0');
+        append_string_Vec(map, row.arr);
     }
     else
         free(row.arr);
@@ -305,7 +305,7 @@ int get_min_score_paths(char **map, size_t map_size, Point start, Point end)
     // }
 
     // Find all squares in the path
-    PointVec paths = newPointVec();
+    Point_Vec paths = new_Point_Vec();
     // Check all parent directions of the end space
     make_min_paths(found_map, map_size, map_row_size, end.row, end.col, &paths);
     for (size_t i = 0; i < paths.len; i++)
@@ -450,18 +450,18 @@ MazeMove peek_pq(MazeMoveHeap heap)
 }
 
 // Append a value to the vector if it doesn't already exist
-void append_if_not_exists(PointVec *vec, Point point)
+void append__if_not_exists_Vec(Point_Vec *vec, Point point)
 {
     for (size_t i = 0; i < vec->len; i++)
         if (vec->arr[i].row == point.row && vec->arr[i].col == point.col)
             return;
-    appendPoint(vec, point);
+    append_Point_Vec(vec, point);
 }
 
-void make_min_paths(FoundSquare *found_map, int map_size, int map_row_size, int row, int col, /*Direction next_direction,*/ PointVec *path_squares)
+void make_min_paths(FoundSquare *found_map, int map_size, int map_row_size, int row, int col, /*Direction next_direction,*/ Point_Vec *path_squares)
 {
     // Append this
-    append_if_not_exists(path_squares, (Point){.row = row, .col = col});
+    append__if_not_exists_Vec(path_squares, (Point){.row = row, .col = col});
     FoundSquare found_square = IDX_2D(found_map, row, col);
     int next_row = row;
     int next_col = col;

@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "../vector_template.h"
+#include "../c-data-structures/vector/vector_template.h"
 
 #define MAP_WIDTH 101
 #define MAP_HEIGHT 103
@@ -26,7 +26,7 @@ typedef struct Robot
 
 DEF_VEC(Robot)
 
-int parse_input(char *input_file, RobotVec *robots);
+int parse_input(char *input_file, Robot_Vec *robots);
 void print_robots(Robot *robots, size_t robots_size);
 void find_tree(Robot *robots, size_t robots_size, int iterations, int triangle_size);
 Point get_destination(Robot robot);
@@ -35,7 +35,7 @@ int has_triangle(short map[MAP_HEIGHT][MAP_WIDTH], int triangle_size);
 
 int main(int argc, char *argv[])
 {
-    RobotVec robots;
+    Robot_Vec robots;
     char *input_file = (argc >= 2) ? argv[1] : NULL;
     if (parse_input(input_file, &robots))
         return 1;
@@ -52,7 +52,7 @@ int main(int argc, char *argv[])
 /// @param input_file The path of the file to input from. If null, stdin will be used
 /// @param claw_machines Out: The vector of robots
 /// @return 0 if success, non-zero if failure
-int parse_input(char *input_file, RobotVec *robots)
+int parse_input(char *input_file, Robot_Vec *robots)
 {
     // Open input.txt or panic
     FILE *f = input_file ? fopen(input_file, "r") : stdin;
@@ -62,7 +62,7 @@ int parse_input(char *input_file, RobotVec *robots)
         return 1;
     }
 
-    *robots = newRobotVec();
+    *robots = new_Robot_Vec();
 
     Robot robot;
     while (fscanf(
@@ -80,7 +80,7 @@ int parse_input(char *input_file, RobotVec *robots)
             robots->arr = NULL;
             return 1;
         }
-        appendRobot(robots, robot);
+        append_Robot_Vec(robots, robot);
     }
     return 0;
 }
